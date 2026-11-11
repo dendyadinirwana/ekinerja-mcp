@@ -1,0 +1,19 @@
+# macOS noise
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Local credentials and captured sessions — never commit
+.ekinerja_config.json
+*.cookie
+*.har
+.env
+.env.*
+
+# Local scratch
+dist/
+tmp/
+*.log

@@ -1,0 +1,29 @@
+{
+  "name": "ekinerja-bkn-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Model Context Protocol (MCP) server for e-Kinerja BKN (kinerja.bkn.go.id) - SKP, RHK, Renaksi, and daily activity reporting over stdio.",
+  "main": "index.js",
+  "bin": {
+    "ekinerja-bkn-mcp": "index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test/smoke.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ekinerja",
+    "bkn",
+    "skp",
+    "asn",
+    "json-rpc"
+  ],
+  "license": "UNLICENSED",
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Syntax check
+        run: node --check index.js
+
+      - name: MCP protocol smoke test
+        run: npm test
+
+  hygiene:
+    name: Repo hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fail on committed credentials or local config
+        run: |
+          set -euo pipefail
+          if git ls-files | grep -E '(^|/)\.ekinerja_config\.json$'; then
+            echo "::error::Local credential file .ekinerja_config.json must never be committed"
+            exit 1
+          fi
+          if git grep -nEI 'gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}' -- . ':!package-lock.json'; then
+            echo "::error::Possible hardcoded credential found"
+            exit 1
+          fi
+          echo "No committed credentials found."
+
+      - name: Verify declared dependencies
+        run: |
+          set -euo pipefail
+          node -e "
+            const pkg = require('./package.json');
+            const deps = Object.keys(pkg.dependencies || {});
+            if (deps.length) {
+              console.error('This server is dependency-free by design, but package.json declares: ' + deps.join(', '));
+              process.exit(1);
+            }
+            console.log('Dependency-free confirmed.');
+          "

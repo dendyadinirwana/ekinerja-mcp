@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (must match a tag already pushed, e.g. v1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Smoke test before publishing
+        run: |
+          node --check index.js
+          npm test
+
+      - name: Verify tag matches package.json version
+        run: |
+          set -euo pipefail
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          TAG_VERSION="${TAG#v}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Tag $TAG does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+          echo "Version $PKG_VERSION verified."
+
+      - name: Build release bundle
+        run: |
+          set -euo pipefail
+          mkdir -p dist/ekinerja-bkn-mcp
+          cp index.js package.json README.md dist/ekinerja-bkn-mcp/
+          (cd dist && zip -r "ekinerja-bkn-mcp-${TAG}.zip" ekinerja-bkn-mcp -x '*.DS_Store')
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" "dist/ekinerja-bkn-mcp-${TAG}.zip" \
+            --title "$TAG" \
+            --notes "MCP server bundle for e-Kinerja BKN $TAG. Run \`node index.js\` or serve it over stdio from your MCP client." \
+            --verify-tag
