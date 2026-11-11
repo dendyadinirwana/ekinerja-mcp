@@ -88,6 +88,66 @@ function getDiaCookies() {
   }
 }
 
+function isJwtValid(tok) {
+  if (!tok || typeof tok !== 'string') return false;
+  const parts = tok.split('.');
+  if (parts.length !== 3) return false;
+  try {
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+    return payload && payload.exp && payload.exp > Math.floor(Date.now() / 1000) + 30;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Automatically extracts fresh e-Kinerja Bearer token from Dia browser's LevelDB Local Storage
+ */
+function getDiaToken() {
+  try {
+    const ldbDir = path.join(os.homedir(), 'Library/Application Support/Dia/User Data/Default/Local Storage/leveldb');
+    if (!fs.existsSync(ldbDir)) return null;
+
+    const files = fs.readdirSync(ldbDir)
+      .filter(f => f.endsWith('.ldb') || f.endsWith('.log'))
+      .map(f => ({ name: f, time: fs.statSync(path.join(ldbDir, f)).mtimeMs }))
+      .sort((a, b) => b.time - a.time);
+
+    const target = Buffer.from('_https://kinerja.bkn.go.id\x00\x01token');
+    let bestToken = null;
+    let bestExp = 0;
+
+    for (const file of files) {
+      const fullPath = path.join(ldbDir, file.name);
+      const data = fs.readFileSync(fullPath);
+      let idx = 0;
+      while (true) {
+        idx = data.indexOf(target, idx);
+        if (idx === -1) break;
+        const sub = data.subarray(idx, idx + 4000).toString('utf8');
+        const match = sub.match(/eyJ[a-zA-Z0-9_\-]+\.eyJ[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+/);
+        if (match) {
+          const jwt = match[0];
+          try {
+            const p = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString('utf8'));
+            if (p.azp === 'si-kinerja' && p.exp && p.exp > Math.floor(Date.now() / 1000)) {
+              if (p.exp > bestExp) {
+                bestExp = p.exp;
+                bestToken = jwt;
+              }
+            }
+          } catch (e) {}
+        }
+        idx += target.length;
+      }
+      if (bestToken && bestExp > Math.floor(Date.now() / 1000) + 3600) break;
+    }
+    return bestToken;
+  } catch (err) {
+    return null;
+  }
+}
+
 async function getSanctumCookies() {
   try {
     const csrfRes = await fetch(`${BASE_URL}/sanctum/csrf-cookie`);
@@ -114,11 +174,20 @@ async function getSanctumCookies() {
   }
 }
 
-async function requestApi(endpoint, options = {}) {
+async function requestApi(endpoint, options = {}, retryOnAuth = true) {
   const config = loadConfig();
   let cookieHeader = config.cookieHeader;
   let xsrfToken = config.xsrfToken;
   let token = config.token;
+
+  if (!isJwtValid(token)) {
+    const diaTok = getDiaToken();
+    if (diaTok) {
+      token = diaTok;
+      config.token = diaTok;
+      saveConfig(config);
+    }
+  }
 
   const method = (options.method || 'GET').toUpperCase();
   if (method !== 'GET' || !cookieHeader) {
@@ -156,6 +225,16 @@ async function requestApi(endpoint, options = {}) {
     data = await res.json();
   } else {
     data = await res.text();
+  }
+
+  // If token was rejected, auto-refresh from Dia and retry once
+  if ((res.status === 401 || (res.status === 500 && endpoint.startsWith('/api/daily_activity'))) && retryOnAuth) {
+    const freshDiaTok = getDiaToken();
+    if (freshDiaTok && freshDiaTok !== token) {
+      config.token = freshDiaTok;
+      saveConfig(config);
+      return requestApi(endpoint, options, false);
+    }
   }
 
   return { status: res.status, data };

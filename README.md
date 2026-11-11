@@ -16,7 +16,7 @@ A dependency-free [Model Context Protocol](https://modelcontextprotocol.io) serv
 - **8 tools** covering the daily-activity workflow end to end: profile check, SKP, RHK, Renaksi, read/add/delete daily progress.
 - **Zero runtime dependencies** — plain Node.js standard library, one file, no build step.
 - **JSON-RPC 2.0 over stdio** (`protocolVersion: 2024-11-05`), compatible with any MCP client.
-- **Automatic cookie acquisition** on macOS: reads and decrypts the e-Kinerja session from the Dia browser profile, or falls back to a fresh Laravel Sanctum CSRF cookie.
+- **Automatic token & cookie acquisition** on macOS: extracts fresh Keycloak SSO Bearer tokens directly from Dia browser's LevelDB storage, reads and decrypts session cookies from the Dia SQLite profile, and automatically refreshes expired credentials without manual interaction.
 - **Local-only credential storage** in `~/.ekinerja_config.json`; nothing is sent anywhere except the e-Kinerja API.
 
 ## Requirements
@@ -60,10 +60,11 @@ For a repo-local install, `args` can be `["./index.js"]` with `cwd` set to the c
 
 ### Authenticate
 
-Two paths, in this order:
+Three paths, in order of priority:
 
-1. **Bearer token (all platforms).** Sign in at `kinerja.bkn.go.id`, copy `localStorage.token` from DevTools, then call `ekinerja_set_token`. The value is written to `~/.ekinerja_config.json`.
-2. **Dia cookies (macOS).** With an active Dia session on `kinerja.bkn.go.id`, the server copies the Cookies SQLite DB to a temp file, unlocks the `Dia Safe Storage` Keychain item, decrypts the AES-128-CBC values, and reuses the session. No manual step.
+1. **Automatic token extraction (macOS/Dia).** With an active Dia browser session on `kinerja.bkn.go.id`, the server automatically extracts the fresh `si-kinerja` Keycloak Bearer token directly from Dia's LevelDB Local Storage (`~/Library/Application Support/Dia/...`) whenever the token is missing or expired. Zero manual copy-pasting required.
+2. **Dia cookies (macOS).** With an active Dia session, the server copies the Cookies SQLite DB to a temp file, unlocks the `Dia Safe Storage` Keychain item, decrypts the AES-128-CBC values, and reuses the session cookies.
+3. **Manual Bearer token (all platforms).** Sign in at `kinerja.bkn.go.id`, copy `localStorage.token` from DevTools, then call `ekinerja_set_token`. The value is saved to `~/.ekinerja_config.json`.
 
 Verify with `ekinerja_status`. A `200` returns your short profile; anything else means the session is missing or expired.
 
