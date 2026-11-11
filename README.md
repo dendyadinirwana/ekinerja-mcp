@@ -1,4 +1,4 @@
-# e-Kinerja BKN MCP Server
+# e-Kinerja MCP Server
 
 [![CI](https://github.com/dendyadinirwana/ekinerja-bkn-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/dendyadinirwana/ekinerja-bkn-mcp/actions/workflows/ci.yml)
 [![Release](https://github.com/dendyadinirwana/ekinerja-bkn-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/dendyadinirwana/ekinerja-bkn-mcp/actions/workflows/release.yml)
