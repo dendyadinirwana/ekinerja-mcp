@@ -206,7 +206,7 @@ const TOOLS = [
       properties: {
         skp_id: {
           type: 'string',
-          description: 'ID SKP aktif (misal: 04d6e0c52c34462399b710580256dd0d)'
+          description: 'ID SKP aktif, 32 karakter hex (ambil dari hasil ekinerja_list_skp)'
         }
       },
       required: ['skp_id']

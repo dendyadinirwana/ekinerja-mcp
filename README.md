@@ -91,7 +91,7 @@ chmod 600 ~/.ekinerja_config.json
 ```text
 user      > Cek SKP aktif hari ini, lalu tampilkan RHK-nya.
 assistant > ekinerja_list_skp { "date": "2026-11-11" }
-          > ekinerja_list_rhk { "skp_id": "04d6e0c5...dd0d" }
+          > ekinerja_list_rhk { "skp_id": "<skp_id from ekinerja_list_skp>" }
           > ...
 ```
 
