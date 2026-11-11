@@ -51,16 +51,16 @@ jobs:
       - name: Build release bundle
         run: |
           set -euo pipefail
-          mkdir -p dist/ekinerja-bkn-mcp
-          cp index.js package.json README.md dist/ekinerja-bkn-mcp/
-          (cd dist && zip -r "ekinerja-bkn-mcp-${TAG}.zip" ekinerja-bkn-mcp -x '*.DS_Store')
+          mkdir -p dist/ekinerja-mcp
+          cp index.js package.json README.md dist/ekinerja-mcp/
+          (cd dist && zip -r "ekinerja-mcp-${TAG}.zip" ekinerja-mcp -x '*.DS_Store')
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh release create "$TAG" "dist/ekinerja-bkn-mcp-${TAG}.zip" \
+          gh release create "$TAG" "dist/ekinerja-mcp-${TAG}.zip" \
             --title "$TAG" \
             --notes "MCP server bundle for e-Kinerja BKN $TAG. Run \`node index.js\` or serve it over stdio from your MCP client." \
             --verify-tag

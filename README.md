@@ -1,7 +1,7 @@
 # e-Kinerja MCP Server
 
-[![CI](https://github.com/dendyadinirwana/ekinerja-bkn-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/dendyadinirwana/ekinerja-bkn-mcp/actions/workflows/ci.yml)
-[![Release](https://github.com/dendyadinirwana/ekinerja-bkn-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/dendyadinirwana/ekinerja-bkn-mcp/actions/workflows/release.yml)
+[![CI](https://github.com/dendyadinirwana/ekinerja-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/dendyadinirwana/ekinerja-mcp/actions/workflows/ci.yml)
+[![Release](https://github.com/dendyadinirwana/ekinerja-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/dendyadinirwana/ekinerja-mcp/actions/workflows/release.yml)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-blue.svg)](#design-notes)
 
@@ -31,8 +31,8 @@ A dependency-free [Model Context Protocol](https://modelcontextprotocol.io) serv
 ## Quick start
 
 ```bash
-git clone git@github.com:dendyadinirwana/ekinerja-bkn-mcp.git
-cd ekinerja-bkn-mcp
+git clone git@github.com:dendyadinirwana/ekinerja-mcp.git
+cd ekinerja-mcp
 node --check index.js
 npm test          # offline protocol handshake, no API calls
 ```
@@ -50,7 +50,7 @@ Point your client at the absolute path of `index.js`:
   "mcpServers": {
     "ekinerja-bkn": {
       "command": "node",
-      "args": ["/absolute/path/to/ekinerja-bkn-mcp/index.js"]
+      "args": ["/absolute/path/to/ekinerja-mcp/index.js"]
     }
   }
 }
