@@ -182,4 +182,6 @@ git push origin main --tags
 
 ## License
 
-Private repository, all rights reserved. No license is granted for redistribution.
+All rights reserved. No open-source license is granted yet, so the code is published for reference and personal use only; redistribution, modification, or commercial use requires the author's permission.
+
+If you plan to accept contributions or want others to reuse it freely, add a license (MIT or Apache-2.0 are the usual choices) and replace this section.
